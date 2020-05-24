@@ -6,9 +6,9 @@ import {  Button  } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
  
-const Tab = createBottomTabNavigator();
 
 export default function BusMain() {
+  const Tab = createBottomTabNavigator();
   const navigation = useNavigation();
 
      return (
