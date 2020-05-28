@@ -127,7 +127,7 @@ function removeNumbersFromRouteStopName(routeStops) {
                 names.splice(names.length - 1, 1);
                 route.Name = names.join();
                 return route;
-            }
+            } 
        )
 };
 
