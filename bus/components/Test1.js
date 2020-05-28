@@ -7,9 +7,11 @@ import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-
 import { Text } from 'react-native-elements';
 import { Button } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
+import * as Location from 'expo-location';
 
 
 export default function Test2() {
+ 
 
   const navigation = useNavigation();
  
@@ -24,10 +26,6 @@ export default function Test2() {
  // Option Select Hook
  const [value, setOptionValue] = useState('');
 
- useEffect( () => {
-     onOptionChange(value);
- }, [ value ])
-
  //Selected Bus Object , By Select Option Hook
  const [busInfo, setBussInfo] = useState(null);
 
@@ -41,22 +39,41 @@ export default function Test2() {
  const [radio_props, setPointA] = useState([{label: '', value: 0 },{label: '', value: 0 }]);
 
  // Starting Bus Adress
- 
  const [pointAValue, setPointAValue] = useState('');
  
  // Ending Bus Adress 
  const [pointB, setPointB] = useState('default');
 
+ const [location, setLocation] = useState(null);
+
+ // Get location
+ useEffect(() => {
+      (async () => {
+          let { status } =  await Location.requestPermissionsAsync();
+          if(status === 'granted') {
+          let location = await Location.getCurrentPositionAsync({});
+          const {coords}  = location;
+          setLocation(coords);
+       };
+     })();
+   }, []);
+
+ // Get bus Routes by selected bus
+ useEffect( () => {
+     onOptionChange(value, location);
+ }, [ value ])
 
  
-function onOptionChange(value) {
+function onOptionChange(value, location) {
      if(value === 'default') return;
      // Update Option Value
      setOptionValue(value);
+
      // Update selected option bus hook
      setBussInfo(buses.filter(bus => bus.RouteNumber === value)[0]);
+
      // fetch data by bus id 
-     getBusDirectionsByBusId(value);
+     getBusDirectionsByBusId(value, location);
      // Loader
      setLoader(true);
  
@@ -69,7 +86,7 @@ function getBusses() {
                        .then((Route) =>  setBuses([...Route]));
 };
 
-function getBusDirectionsByBusId(numberOfTheBus) {
+function getBusDirectionsByBusId(numberOfTheBus, location) {
      return Controller.instance
                        .getBusDirectionsByBusId(numberOfTheBus)
                        .then(({data}) => data)
@@ -77,9 +94,29 @@ function getBusDirectionsByBusId(numberOfTheBus) {
                                setLoader(false); 
                                setBusById(removeNumbersFromRouteStopName(RouteStops));
                                handleOnSetPointA(RouteStops);
-                            }
-                       )
+                               setBusLocation(location, RouteStops);
+                            })
 };
+
+function setBusLocation(location, busStops) {     
+     if(!busStops || !location) return
+     let stopId = '';
+     let distance = 5;
+
+     busStops.map(
+          (route) => {
+               let sum = (route.Lon + route.Lat) - (+((location.longitude + location.latitude).toFixed(7)) );
+               // Find Closest Locationb by sum difference 
+               if( sum < distance && sum >= 0 ) {
+                    distance = sum;     
+                    stopId =  route.StopId;
+               }
+          });
+          
+     if(stopId) {
+          setPointB(stopId);
+     };
+}
 
                                                 
 function removeNumbersFromRouteStopName(routeStops) {
@@ -108,6 +145,7 @@ function handleOnSetPointA(routeStops) {
       ])
 };
 
+ 
 function onsubmit() {
      const busNumber = value,
           pointBValue = pointB,

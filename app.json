@@ -5,7 +5,6 @@
     "name": "busDestination",
     "slug": "expo-template-bare",
     "version": "1.0.0",
-    "icon": "./src/assets/bus.jpg",
     "platforms": [
       "ios",
       "android",
