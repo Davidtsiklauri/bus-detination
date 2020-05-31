@@ -1,9 +1,11 @@
+
 {
   "name": "busDestination",
   "displayName": "busDestination",
   "expo": {
     "name": "busDestination",
     "slug": "expo-template-bare",
+    "icon": "./src/assets/bus.png",
     "version": "1.0.0",
     "platforms": [
       "ios",

@@ -1,6 +1,6 @@
 import React from 'react'
-import Test1 from './components/Test1';
-import Test2 from './components/Test2';
+import SelectBusInformation from './components/SelectBusInformation';
+import BusRoutes from './components/BusRoutes';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {  Button  } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -13,17 +13,17 @@ export default function BusMain() {
 
      return (
           <>
-            <Tab.Navigator screenOptions={{ tabBarVisible: false }} initialRouteName="test1"> 
-                <Tab.Screen name="test1" component={Test1} />
-                <Tab.Screen name="test2" component={Test2} />
+            <Tab.Navigator screenOptions={{ tabBarVisible: false }} initialRouteName="select-bus"> 
+                <Tab.Screen name="select-bus" component={SelectBusInformation} />
+                <Tab.Screen name="routes" component={BusRoutes} />
             </Tab.Navigator>
             <Button
                title="test1"
-               onPress={() =>  navigation.navigate('bus', {screen: 'test1' })}
+               onPress={() =>  navigation.navigate('bus', { screen: 'select-bus' })}
              />
              <Button
                title="test2"
-               onPress={() => navigation.navigate('bus', {screen: 'test2' })}
+               onPress={() => navigation.navigate('bus', {screen: 'routes' })}
              />
           </>
      );

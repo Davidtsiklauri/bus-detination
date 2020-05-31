@@ -11,4 +11,13 @@ export default class Controller {
     getBusDirectionsByBusId(numberOfTheBus) {
          return axios.get(`http://transfer.ttc.com.ge:8080/otp/routers/ttc/routeInfo?routeNumber=${numberOfTheBus}&type=bus`)
     };
+
+    getBusArrivalTimes(stopId) {
+        return axios.get(`http://transfer.ttc.com.ge:8080/otp/routers/ttc/stopArrivalTimes?stopId=${stopId}`);
+    };
+
+    getRouteStops(fowardId, busId) {
+        return axios.get(`http://transfer.ttc.com.ge:8080/otp/routers/ttc/routeStops?routeNumber=${busId}&forward=${fowardId}`);
+    };
+    
 };

@@ -10,20 +10,13 @@ import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location';
 
 
-export default function Test2() {
- 
-
-  const navigation = useNavigation();
- 
+export default function SelectBusInformation() {   
+ const navigation = useNavigation();
 
   // All the buses List Hook
-  const [buses, setBuses] = useState([]);
+ const [buses, setBuses] = useState([]);
 
-  useEffect(() => {
-      getBusses(setBuses);
-  }, []);
- 
- // Option Select Hook
+  // Option Select Hook
  const [value, setOptionValue] = useState('');
 
  //Selected Bus Object , By Select Option Hook
@@ -46,24 +39,37 @@ export default function Test2() {
 
  const [location, setLocation] = useState(null);
 
+ const [busRouteStops, setBusRouteStops] = useState([]);
+
+
+  useEffect(() => {
+      getBusses(setBuses);
+  }, []);
+
  // Get location
  useEffect(() => {
-      (async () => {
-          let { status } =  await Location.requestPermissionsAsync();
-          if(status === 'granted') {
-          let location = await Location.getCurrentPositionAsync({});
-          const {coords}  = location;
-          setLocation(coords);
-       };
-     })();
-   }, []);
+     (async () => {
+         let { status } =  await Location.requestPermissionsAsync();
+         if(status === 'granted') {
+              let location = await Location.getCurrentPositionAsync({});
+              const {coords}  = location;
+              setLocation(coords);
+      };
+    })();
+  }, []);
+
 
  // Get bus Routes by selected bus
  useEffect( () => {
      onOptionChange(value, location);
  }, [ value ])
 
- 
+ // Get list of bus routes
+ useEffect( () => {
+           getRouteStops(value, pointAValue);
+ }, [ pointAValue ])
+
+  
 function onOptionChange(value, location) {
      if(value === 'default') return;
      // Update Option Value
@@ -76,6 +82,9 @@ function onOptionChange(value, location) {
      getBusDirectionsByBusId(value, location);
      // Loader
      setLoader(true);
+
+     // Get default routes
+     getRouteStops(value, 0);
  
 };
 
@@ -84,6 +93,13 @@ function getBusses() {
                        .getBuses()
                        .then(({data}) => data['Route'])
                        .then((Route) =>  setBuses([...Route]));
+};
+
+function getRouteStops(pointAValue, forwardId) {
+     return Controller.instance
+                       .getRouteStops(forwardId, pointAValue)
+                       .then(({data}) => data['Stops'] )
+                       .then( routeStops => setBusRouteStops(routeStops))
 };
 
 function getBusDirectionsByBusId(numberOfTheBus, location) {
@@ -136,11 +152,11 @@ function handleOnSetPointA(routeStops) {
      setPointA([
           { 
             label: routeStops[0]['Name'], 
-            value: routeStops[0]['StopId'] 
+            value: 1
           },
           { 
              label: routeStops[routeStops.length-1]['Name'], 
-             value: routeStops[routeStops.length-1]['StopId'] 
+             value: 0 
           }
       ])
 };
@@ -148,17 +164,20 @@ function handleOnSetPointA(routeStops) {
  
 function onsubmit() {
      const busNumber = value,
-          pointBValue = pointB,
-          pointAValue = pointAValue || radio_props[0]['value'];
-          navigation.navigate('bus', {screen: 'test2' })
+           pointBValue = pointB,
+           pointAValue = pointAValue || radio_props[0]['value'];
+
      if(busNumber && pointBValue && pointAValue ) {
-         console.log(busNumber, pointBValue, pointAValue );
+          navigation.navigate('bus', { 
+               screen: 'routes',
+               params: {
+                    pointB: pointB || null
+               }
+          })
      }
 }
 
 
-
-   
 return (
      <>
      <View  style={{  paddingLeft: 20, marginTop: 50 }}>
@@ -199,41 +218,41 @@ return (
                     <RadioButton>
                          <RadioButtonInput  isSelected='true' buttonOuterColor='true' 
                                             buttonWrapStyle={{marginLeft: 10}}/>
-                         <RadioButtonLabel buttonInnerColor={'#e74c3c'} labelStyle={{fontSize: 20, color: '#2ecc71'}}/>
+                         <RadioButtonLabel  buttonInnerColor={'#e74c3c'} labelStyle={{fontSize: 20, color: '#2ecc71'}}/>
                     </RadioButton>
 
                     <RadioButton>
                          <RadioButtonInput   isSelected='true' buttonOuterColor='true' 
                                              buttonWrapStyle={{marginLeft: 10}}/>
-                         <RadioButtonLabel buttonInnerColor={'#e74c3c'} labelStyle={{fontSize: 20, color: '#2ecc71'}}/>
+                         <RadioButtonLabel   buttonInnerColor={'#e74c3c'} labelStyle={{fontSize: 20, color: '#2ecc71'}}/>
                     </RadioButton>
                </RadioForm>
      </View>
      }
 
      { busDestinitionAdresses &&  
-      busDestinitionAdresses.length > 0  && 
+       busDestinitionAdresses.length > 0  && 
           <View  style={{  paddingLeft: 20, marginTop: 40, marginBottom: 15 }}>
                     <Text > მიუთითეთ გაჩერების მდებარეობა </Text>
           </View>
      }
 
      <View style={{  flexDirection: "row", height: 71, paddingLeft: 20, paddingRight: 20 }}  > 
-          { busDestinitionAdresses &&  
-            busDestinitionAdresses.length > 0 &&   
-            <Select value={pointB} list={busDestinitionAdresses}  label='Name' 
+          { busRouteStops &&  
+            busRouteStops.length > 0 &&   
+            <Select value={pointB} list={busRouteStops}  label='Name' 
                     id='StopId' onOptionChangeHook={setPointB} /> }
      </View> 
 
      {
-     busDestinitionAdresses &&  
-     busDestinitionAdresses.length > 0  && pointB !== 'default' && 
-     <View style={{ flexDirection: "row", flexWrap: 'wrap', justifyContent: 'center' }}>
-               <Button title="შემდეგი" 
-                       type='solid'
-                       onPress={onsubmit}/>
-     </View>}
-
+          busDestinitionAdresses &&  
+          busDestinitionAdresses.length > 0  && pointB !== 'default' && 
+          <View style={{ flexDirection: "row", flexWrap: 'wrap', justifyContent: 'center' }}>
+                    <Button title="შემდეგი" 
+                         type='solid'
+                         onPress={onsubmit}/>
+          </View>
+     }
      </>
      );
 };
